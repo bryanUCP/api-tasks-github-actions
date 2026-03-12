@@ -22,12 +22,15 @@ public class TaskControllerTests{
         //Arrange
         _mockRepo.Setup(r => r.GetAll()).Returns(
             new List<TaskItem> {
-                 new () { Id=1, Title = "Tarea 1" },
-                 new () { Id=2, Title = "Tarea 2" }
+                new () { Id=1, Title = "Tarea 1" },
+                new () { Id=2, Title = "Tarea 2" }
             });
-        
+
+        //Act
+        var result = _ctrl.GetAll();
+
         //Assert
-        _ctrl.Should().BeOfType<OkObjectResult>()
+        result.Should().BeOfType<OkObjectResult>()
             .Which.Value.Should().BeAssignableTo<IEnumerable<TaskItem>>()
             .Which.Should().HaveCount(2);
     }
