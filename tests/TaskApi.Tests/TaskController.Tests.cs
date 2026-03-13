@@ -5,46 +5,54 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 namespace TaskApi.Tests.Controllers;
-public class TaskControllerTests{
-
-    private readonly TasksController _ctrl;
-    private readonly Mock<ITaskRepository> _mockRepo;
-
-    public TaskControllerTests(){
-        _mockRepo = new Mock<ITaskRepository>();
-        _ctrl = new TasksController(_mockRepo.Object);
-    }
-
-    //GetAll
-    [Fact]
-    public void GetAll_HayTareas_RetornaOkConListaDeTareas()
+ 
+public class TaskControllerTests
+{
+ 
+  private readonly TasksController _controller;
+  private readonly Mock<ITaskRepository> _mockRepo;
+ 
+  public TaskControllerTests()
+  {
+    _mockRepo = new Mock<ITaskRepository>();
+    _controller = new TasksController(_mockRepo.Object);
+  }
+ 
+  //getAll
+  [Fact]
+  public void GetAll_HayTareas_RetornaOkConListaDeTareas()
+  {
+    _mockRepo.Setup(repo => repo.GetAll()).Returns(new List<TaskItem>
     {
-        //Arrange
-        _mockRepo.Setup(r => r.GetAll()).Returns(
-            new List<TaskItem> {
-                 new () { Id=1, Title = "Tarea 1" },
-                 new () { Id=2, Title = "Tarea 2" }
-            });
-        
-        //Assert
-        _ctrl.Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeAssignableTo<IEnumerable<TaskItem>>()
-            .Which.Should().HaveCount(2);
-    }
-
-    //GetById
-    [Fact]
-    public void GetById_TareaExistente_RetornaOkConTarea()
-    {
-        //Arrange
-        var tarea = new TaskItem { Id = 1, Title = "Tarea 1" };
-        _mockRepo.Setup(r => r.GetById(1)).Returns(tarea);
-        
-        //Assert
-        _ctrl.GetById(1).Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeAssignableTo<TaskItem>()
-            .Which.Id.Should().Be(1);
-    }
-
-
+      new TaskItem { Id = 1, Title = "Tarea 1", Description = "Descripción de la tarea 1", IsCompleted = false },
+      new TaskItem { Id = 2, Title = "Tarea 2", Description = "Descripción de la tarea 2", IsCompleted = true }
+    });
+ 
+    _controller.GetAll().Should().BeOfType<OkObjectResult>()
+      .Which.Value.Should().BeAssignableTo<IEnumerable<TaskItem>>()
+      .Which.Should().HaveCount(2);
+ 
+   
+  }
+ 
+  //getById
+  [Fact]
+  public void GetById_TareaExiste_RetornaOkConTarea()
+  {
+    _mockRepo.Setup(repo => repo.GetById(1)).Returns(new TaskItem { Id = 1, Title = "Tarea 1", Description = "Descripción de la tarea 1", IsCompleted = false });
+ 
+    _controller.GetById(1).Should().BeOfType<OkObjectResult>()
+      .Which.Value.Should().BeAssignableTo<TaskItem>()
+      .Which.Id.Should().Be(1);
+ 
+  }
+ 
+  // no existe el id
+  [Fact]
+  public void GetById_TareaNoExiste_RetornaNotFound()
+  {
+    _mockRepo.Setup(repo => repo.GetById(999)).Returns((TaskItem?)null);
+ 
+    _controller.GetById(999).Should().BeOfType<NotFoundResult>();
+  }
 }
